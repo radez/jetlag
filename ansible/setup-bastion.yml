@@ -30,5 +30,5 @@
   - bastion-assisted-installer
   - role: bastion-gogs
     when: setup_bastion_gogs
-  - role: bastion-disconnected-haproxy
-    when: use_bastion_registry
+  - role: bastion-haproxy
+    when: cluster_type != 'sno'
