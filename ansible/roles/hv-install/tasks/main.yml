@@ -1,7 +1,19 @@
 ---
 # hv-install tasks
 
-- name: Install packages
+
+# Set hypervisor rhel version
+- name: RHEL version rhel9 check
+  set_fact:
+    hv_rhel_version: "rhel9"
+  when: ansible_facts['distribution_major_version'] is version('9', '==')
+
+- name: RHEL version rhel8 check
+  set_fact:
+    hv_rhel_version: "rhel8"
+  when: ansible_facts['distribution_major_version'] is version('8', '==')
+
+- name: Install packages for RHEL8
   dnf:
     name:
     - "@virt"
@@ -14,16 +26,34 @@
     state: present
     update_cache: true
     disable_gpg_check: yes
+  when: hv_rhel_version == 'rhel8'
 
-- name: Install python packages
+- name: Install packages for RHEL9
+  dnf:
+    name:
+    - "@virtualization-host-environment"
+    - virt-install
+    - virt-viewer
+    - gcc
+    - python3-devel
+    - python3-libvirt
+    - rsync
+    - ksmtuned
+    state: present
+    update_cache: true
+    disable_gpg_check: yes
+  when: hv_rhel_version == 'rhel9'
+
+- name: Install Sushi-Tools
   pip:
-    name: "{{ item.name }}"
-    version: "{{ item.version }}"
-  loop:
-  - name: libvirt-python
-    version: 6.0.0
-  - name: sushy-tools
-    version: 0.16.0
+    name: sushy-tools
+    version: latest
+
+- name: Install libvirt-python on RHEL8
+  pip:
+    name: libvirt-python
+    version: latest
+  when: hv_rhel_version == 'rhel8'
 
 - name: Get coredns
   get_url:
