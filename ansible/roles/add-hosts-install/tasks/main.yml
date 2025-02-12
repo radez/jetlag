@@ -1,0 +1,17 @@
+---
+- name: Get cluster
+  uri:
+    url: "http://{{ assisted_installer_host }}:{{ assisted_installer_port }}/api/assisted-install/v2/clusters/{{ ai_cluster_id }}"
+    method: GET
+    status_code: [200, 201]
+    return_content: true
+  register: cluster
+
+- name: Start add_hosts install
+  uri:
+    url: "http://{{ assisted_installer_host }}:{{ assisted_installer_port }}/api/assisted-install/v2/infra-envs/{{ ai_infraenv_id }}/hosts/{{ item.id }}/actions/install"
+    method: POST
+    status_code: [200, 201]
+  with_items: "{{ cluster.json.hosts | json_query(json_qry) }}"
+  vars:
+    json_qry: "[?status=='known']"

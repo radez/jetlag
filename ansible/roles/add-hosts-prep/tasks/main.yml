@@ -1,0 +1,28 @@
+---
+- name: Get cluster status 
+  uri: 
+    url: "http://{{ assisted_installer_host }}:{{ assisted_installer_port }}/api/assisted-install/v2/clusters/{{ ai_cluster_id }}" 
+    method: GET 
+    body_format: json 
+    status_code: [200] 
+    return_content: true 
+  register: cluster_data 
+  failed_when: cluster_data.json.status not in ['installed', 'adding-hosts'] 
+
+- name: Set cluster status to adding-hosts 
+  uri: 
+    url: "http://{{ assisted_installer_host }}:{{ assisted_installer_port }}/api/assisted-install/v2/clusters/{{ ai_cluster_id }}/actions/allow-add-workers" 
+    method: POST 
+    body_format: json 
+    status_code: [202] 
+  when: cluster_data.json.status == 'installed'
+
+- name: Get cluster status 
+  uri: 
+    url: "http://{{ assisted_installer_host }}:{{ assisted_installer_port }}/api/assisted-install/v2/clusters/{{ ai_cluster_id }}" 
+    method: GET 
+    body_format: json 
+    status_code: [200] 
+    return_content: true 
+  register: cluster_data 
+  failed_when: cluster_data.json.status not in ['adding-hosts'] 
